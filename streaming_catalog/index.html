@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Streaming catalog</title>
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React 18 (UMD) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <style>
+    :root { --nf-red:#e50914; --nf-dark:#141414; }
+    .row-mask { -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); }
+    .shade { background: linear-gradient(180deg, rgba(0,0,0,.4) 0%, rgba(0,0,0,.1) 30%, rgba(0,0,0,.85) 100%); }
+    .nf-nav a { color:#e5e5e5; }
+    .nf-nav a:hover { color:#fff; }
+  </style>
+</head>
+<body class="bg-black text-white">
+  <div id="app"></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
+

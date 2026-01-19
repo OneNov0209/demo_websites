@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PubSub Live Game</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <style>
+    :root{
+      --bg:#0b0b0b; --panel:#151515; --text:#f3f3f3; --muted:#bdbdbd; --border:#242424;
+      --accent:#1db954; --danger:#f87171;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Helvetica Neue',Arial}
+    .topbar{height:56px;display:flex;align-items:center;gap:12px;padding:0 14px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.55);backdrop-filter:blur(10px);position:sticky;top:0;z-index:10}
+    .brand{font-weight:900;color:var(--accent)}
+    .wrap{max-width:1100px;margin:0 auto;padding:14px}
+    .grid{display:grid;grid-template-columns:360px 1fr;gap:14px}
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:12px}
+    .row{display:flex;gap:10px;align-items:center}
+    .col{display:flex;flex-direction:column;gap:8px}
+    label{display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:12px}
+    input{background:#0f0f0f;border:1px solid #2a2a2a;color:#fff;border-radius:12px;padding:10px 12px;outline:none}
+    input:focus{border-color:#3a3a3a}
+    .btn{border:1px solid var(--border);background:#1a1a1a;color:#fff;border-radius:12px;padding:10px 12px;cursor:pointer}
+    .btn:hover{background:#222}
+    .btn.primary{background:var(--accent);color:#000;border:none;font-weight:900}
+    .btn.primary:hover{filter:brightness(1.05)}
+    .muted{color:var(--muted)}
+    .danger{color:var(--danger)}
+    .pill{border:1px solid var(--border);background:#101010;border-radius:999px;padding:4px 8px;font-size:12px;color:var(--muted)}
+    canvas{width:100%;height:560px;border-radius:14px;border:1px solid var(--border);background:radial-gradient(900px 500px at 20% 10%, rgba(29,185,84,.12), transparent 60%), #070707}
+    .log{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace;font-size:12px;white-space:pre-wrap;color:#d7d7d7;max-height:220px;overflow:auto;border-radius:12px;border:1px solid var(--border);background:#0d0d0d;padding:10px}
+    .log::-webkit-scrollbar{width:6px}
+    .log::-webkit-scrollbar-thumb{background:#000;border-radius:999px}
+
+    .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:9999;background:rgba(0,0,0,.62);backdrop-filter:blur(8px)}
+    .overlayCard{min-width:260px;max-width:92vw;background:#121212;border:1px solid var(--border);border-radius:16px;padding:18px 16px;display:flex;flex-direction:column;align-items:center;gap:10px}
+    .spinner{width:34px;height:34px;border-radius:999px;border:3px solid #2a2a2a;border-top-color:var(--accent);animation:spin .9s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @media (max-width: 860px){
+      .grid{grid-template-columns:1fr}
+      canvas{height:420px}
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script src="js/app.js"></script>
+</body>
+</html>

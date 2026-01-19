@@ -246,6 +246,8 @@ const AUTO_BLOCK_MAX_MESSAGES = 10;
 const HEARTBEAT_INTERVAL_MS = 60_000;
 const HEARTBEAT_FIRST_DELAY_MS = 12_000;
 const PEER_STALE_MS = 12_000;
+const PRESENCE_LEAVE_TIMEOUT_MS = 90_000;
+const PRESENCE_SWEEP_INTERVAL_MS = 5_000;
 
 function leadingZeroBits(bytes) {
   let bits = 0;
@@ -349,6 +351,7 @@ function App() {
   const lastRemoteSeenAtRef = useRef(0);
   const lastHeartbeatAtRef = useRef(0);
   const lastPersistedNameRef = useRef(new Map()); // addr -> nick
+  const presenceRef = useRef(new Map()); // addr -> { lastSeenAt }
   const heartbeatInFlightRef = useRef(false);
   const sendingRef = useRef(false);
   const topicRef = useRef(`lumen/pubsub_chat/v1/${String(room || 'lobby').trim().toLowerCase()}`);
@@ -361,6 +364,7 @@ function App() {
   useEffect(() => {
     topicRef.current = topic;
     setUserModal(null);
+    presenceRef.current = new Map();
   }, [topic]);
 
   useEffect(() => {
@@ -533,6 +537,7 @@ function App() {
     });
 
     setMessages((prev) => prev.filter((m) => m.addr !== addr));
+    try { presenceRef.current.delete(addr); } catch {}
     show('User blocked', `${shortAddr(addr)} blocked in this room`, 'info', 2200);
   }
 
@@ -561,7 +566,16 @@ function App() {
       next.push(entry);
       return next;
     });
+    if (entry && (entry.kind === 'system' || entry.persist === false)) return;
     void dbPutMessage(topicRef.current, entry).catch(() => {});
+  }
+
+  function pushPresenceEvent(event, address) {
+    const ev = String(event || '').trim();
+    const addr = String(address || '').trim();
+    if (!ev || !addr) return;
+    const ts = nowMs();
+    pushMessage({ id: `sys:${ev}:${addr}:${ts}`, kind: 'system', event: ev, addr, ts, persist: false });
   }
 
   async function publishSigned(type, fields) {
@@ -613,6 +627,7 @@ function App() {
     lastPeerSeenAtRef.current = 0;
     lastRemoteSeenAtRef.current = 0;
     lastHeartbeatAtRef.current = 0;
+    presenceRef.current = new Map();
 
     show('Connecting', `Subscribing to ${topic}`, 'info', 2200);
 
@@ -711,6 +726,18 @@ function App() {
               return;
             }
 
+            // Presence (best-effort): emit join/leave events in the chat stream.
+            if (canonicalAddr && canonicalAddr !== selfAddress) {
+              if (kind === 'leave') {
+                if (presenceRef.current.has(canonicalAddr)) presenceRef.current.delete(canonicalAddr);
+                pushPresenceEvent('leave', canonicalAddr);
+              } else {
+                const existed = presenceRef.current.has(canonicalAddr);
+                presenceRef.current.set(canonicalAddr, { lastSeenAt: nowMs() });
+                if (!existed) pushPresenceEvent('join', canonicalAddr);
+              }
+            }
+
             if (kind === 'profile') {
               if (isRateLimited(canonicalAddr)) {
                 setRxStats((s) => ({ ...s, dropped: s.dropped + 1, lastDrop: 'rate_limited' }));
@@ -722,6 +749,12 @@ function App() {
             }
 
             if (kind === 'ping') {
+              if (canonicalAddr && canonicalAddr !== selfAddress) lastRemoteSeenAtRef.current = nowMs();
+              setRxStats((s) => ({ ...s, accepted: s.accepted + 1 }));
+              return;
+            }
+
+            if (kind === 'leave') {
               if (canonicalAddr && canonicalAddr !== selfAddress) lastRemoteSeenAtRef.current = nowMs();
               setRxStats((s) => ({ ...s, accepted: s.accepted + 1 }));
               return;
@@ -791,10 +824,14 @@ function App() {
     connectSeqRef.current += 1;
     setPeerCount(0);
     try {
+      if (status.connected) await publishSigned('leave', {});
+    } catch {}
+    try {
       const u = subRef.current.unsubscribe;
       subRef.current.unsubscribe = null;
       if (u) await u();
     } catch {}
+    presenceRef.current = new Map();
     setStatus({ connected: false, topic: '', subId: '', address: '', topics: [] });
     show('Disconnected', 'Stopped listening to PubSub', 'info', 1800);
   }
@@ -820,6 +857,30 @@ function App() {
       try { clearInterval(t); } catch {}
     };
   }, [status.connected, topic]);
+
+  // Best-effort presence: if a peer stops sending (no msg/profile/ping/leave), emit "left" after a timeout.
+  useEffect(() => {
+    if (!status.connected) return;
+    let alive = true;
+    const tick = () => {
+      if (!alive) return;
+      const now = nowMs();
+      const selfAddr = String(status.address || '').trim();
+      for (const [addr, rec] of presenceRef.current.entries()) {
+        if (!addr || addr === selfAddr) continue;
+        const lastSeenAt = Number(rec?.lastSeenAt || 0) || 0;
+        if (lastSeenAt && now - lastSeenAt > PRESENCE_LEAVE_TIMEOUT_MS) {
+          presenceRef.current.delete(addr);
+          pushPresenceEvent('leave', addr);
+        }
+      }
+    };
+    const t = setInterval(tick, PRESENCE_SWEEP_INTERVAL_MS);
+    return () => {
+      alive = false;
+      try { clearInterval(t); } catch {}
+    };
+  }, [status.connected, status.address]);
 
   // Heartbeat (signed + PoW) to keep PubSub streams active.
   useEffect(() => {
@@ -944,9 +1005,7 @@ function App() {
       { className: 'topbar' },
       React.createElement('div', { className: 'brand' }, 'PubSub Chat'),
       React.createElement('span', { className: 'pill' }, 'signed messages • ADR-036 • PoW'),
-      status.connected
-        ? React.createElement('span', { className: 'pill' }, `peers: ${peerCount}`)
-        : React.createElement('span', { className: 'pill' }, 'offline'),
+      React.createElement('span', { className: 'pill' }, status.connected ? 'connected' : 'disconnected'),
       status.connected
         ? React.createElement('span', { className: 'pill' }, `rx: ${rxStats.accepted}/${rxStats.total}`)
         : null,
@@ -1108,6 +1167,22 @@ function App() {
               : null,
             messages.length
               ? messages.map((m) => {
+                  if (m && m.kind === 'system') {
+                    const addr = String(m.addr || '').trim();
+                    const ev = String(m.event || '').trim();
+                    const n = addr ? String(nameByAddr[addr] || 'anon').trim().slice(0, 22) : '';
+                    const who = addr ? `${n || 'anon'} (${shortAddr(addr)})` : 'unknown';
+                    const line = ev === 'join' ? `${who} joined.` : ev === 'leave' ? `${who} left.` : String(m.text || '').trim();
+                    return React.createElement(
+                      'div',
+                      {
+                        key: m.id,
+                        className: 'muted',
+                        style: { padding: '6px 10px', textAlign: 'center', fontSize: 12 },
+                      },
+                      line
+                    );
+                  }
                   const name = nameByAddr[m.addr] || 'anon';
                   const color = hashColor(m.addr);
                   const letter = String(name || '?').slice(0, 1).toUpperCase();

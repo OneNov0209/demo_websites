@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lumen Demos</title>
+  <style>
+    :root{
+      --bg:#0b0b0b; --panel:#151515; --panel2:#101010; --text:#f3f3f3; --muted:#bdbdbd; --border:#242424;
+      --accent:#1db954; --danger:#f87171; --warn:#fbbf24; --info:#60a5fa;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Helvetica Neue',Arial}
+    a{color:inherit}
+
+    .topbar{
+      height:56px;display:flex;align-items:center;gap:12px;padding:0 14px;
+      border-bottom:1px solid var(--border);
+      background:rgba(0,0,0,.55);backdrop-filter:blur(10px);
+      position:sticky;top:0;z-index:10
+    }
+    .brand{font-weight:900;color:var(--accent);letter-spacing:.2px}
+    .pill{border:1px solid var(--border);background:#101010;border-radius:999px;padding:4px 8px;font-size:12px;color:var(--muted)}
+    .spacer{margin-left:auto}
+
+    .wrap{max-width:1100px;margin:0 auto;padding:16px}
+    .hero{
+      background:
+        radial-gradient(900px 500px at 20% 10%, rgba(29,185,84,.16), transparent 60%),
+        radial-gradient(900px 500px at 90% 20%, rgba(96,165,250,.12), transparent 60%),
+        #070707;
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:16px 16px;
+      display:flex;gap:14px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap
+    }
+    .heroTitle{font-size:20px;font-weight:900;letter-spacing:.2px;margin:0}
+    .heroText{margin:6px 0 0;color:var(--muted);max-width:72ch}
+    .heroRight{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+    .btn{
+      border:1px solid var(--border);background:#1a1a1a;color:#fff;border-radius:12px;padding:10px 12px;cursor:pointer;
+      font:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:8px
+    }
+    .btn:hover{background:#222}
+    .btn.primary{background:var(--accent);color:#000;border:none;font-weight:900}
+    .btn.primary:hover{filter:brightness(1.05)}
+
+    .grid{margin-top:14px;display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+    .card{
+      grid-column:span 6;
+      background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:14px;
+      box-shadow:var(--shadow);
+      display:flex;flex-direction:column;gap:10px;
+      cursor:pointer;user-select:none
+    }
+    .card:hover{background:#171717}
+    .card:focus{outline:none;border-color:#2f2f2f}
+    .cardHead{display:flex;gap:12px;align-items:center;min-width:0}
+    .icon{
+      width:42px;height:42px;border-radius:14px;border:1px solid var(--border);background:#0f0f0f;
+      display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-weight:900
+    }
+    .titleBlock{min-width:0;flex:1}
+    .cardTitle{font-weight:900;margin:0;line-height:1.1}
+    .cardUrl{
+      margin-top:3px;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+    }
+    .desc{color:var(--muted);margin:0;min-height:38px}
+    .tags{display:flex;flex-wrap:wrap;gap:8px}
+    .tag{
+      border:1px solid var(--border);background:#101010;border-radius:999px;
+      padding:4px 8px;font-size:12px;color:var(--muted)
+    }
+    .tag.accent{border-color:rgba(29,185,84,.35);color:#c9ffd9}
+    .tag.info{border-color:rgba(96,165,250,.35);color:#d4e8ff}
+    .tag.warn{border-color:rgba(251,191,36,.35);color:#ffe9b7}
+
+    .actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+    .cardBtn{padding:8px 10px;border-radius:12px}
+
+    .toast{
+      position:fixed;left:14px;right:14px;bottom:14px;z-index:9999;
+      display:flex;justify-content:center;pointer-events:none
+    }
+    .toastCard{
+      pointer-events:auto;max-width:720px;width:fit-content;
+      border:1px solid var(--border);border-radius:14px;padding:10px 12px;background:#0f0f0f;box-shadow:var(--shadow)
+    }
+    .toastTitle{font-weight:900;margin:0 0 2px}
+    .toastMsg{margin:0;color:var(--muted)}
+
+    @media (max-width: 920px){
+      .card{grid-column:span 12}
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">Lumen Demos</div>
+  </div>
+
+  <main class="wrap">
+    <section class="hero">
+      <div>
+        <h1 class="heroTitle">Explore built-in demo websites</h1>
+        <p class="heroText">
+          Click a card to open a demo. These are pure static sites that use <code>window.lumen</code> for identity, PubSub,
+          and <code>lumen://ipfs</code> content.
+        </p>
+      </div>
+      <div class="heroRight">
+        <a class="btn primary" href="lumen://pubsub_chat.lumen.lmn">Open PubSub Chat</a>
+      </div>
+    </section>
+
+    <section class="grid" aria-label="Demo list">
+      <!-- PubSub Chat -->
+      <div class="card" role="link" tabindex="0" data-href="lumen://pubsub_chat.lumen.lmn">
+        <div class="cardHead">
+          <div class="icon" style="color:var(--accent);border-color:rgba(29,185,84,.35)">PC</div>
+          <div class="titleBlock">
+            <h2 class="cardTitle">PubSub Chat</h2>
+            <div class="cardUrl">lumen://pubsub_chat.lumen.lmn</div>
+          </div>
+        </div>
+        <p class="desc">Signed messages (ADR-036) with micro PoW, rate-limit + per-room blocklist.</p>
+        <div class="tags">
+          <span class="tag accent">PubSub</span>
+          <span class="tag info">ADR-036</span>
+          <span class="tag warn">PoW</span>
+        </div>
+        <div class="actions">
+          <button class="btn cardBtn" type="button" data-copy="lumen://pubsub_chat.lumen.lmn">Copy link</button>
+          <a class="btn primary cardBtn" href="lumen://pubsub_chat.lumen.lmn">Open</a>
+        </div>
+      </div>
+
+      <!-- PubSub Live Game -->
+      <div class="card" role="link" tabindex="0" data-href="lumen://pubsub_livegame.lumen.lmn">
+        <div class="cardHead">
+          <div class="icon" style="color:var(--info);border-color:rgba(96,165,250,.35)">LG</div>
+          <div class="titleBlock">
+            <h2 class="cardTitle">PubSub Live Game</h2>
+            <div class="cardUrl">lumen://pubsub_livegame.lumen.lmn</div>
+          </div>
+        </div>
+        <p class="desc">Tiny realtime agar-like playground: signed player states broadcast over PubSub.</p>
+        <div class="tags">
+          <span class="tag accent">PubSub</span>
+          <span class="tag info">Realtime</span>
+          <span class="tag info">ADR-036</span>
+        </div>
+        <div class="actions">
+          <button class="btn cardBtn" type="button" data-copy="lumen://pubsub_livegame.lumen.lmn">Copy link</button>
+          <a class="btn primary cardBtn" href="lumen://pubsub_livegame.lumen.lmn">Open</a>
+        </div>
+      </div>
+
+      <!-- Music Catalog -->
+      <div class="card" role="link" tabindex="0" data-href="lumen://music_catalog.lumen.lmn">
+        <div class="cardHead">
+          <div class="icon" style="color:#f472b6;border-color:rgba(244,114,182,.35)">MC</div>
+          <div class="titleBlock">
+            <h2 class="cardTitle">Music Catalog</h2>
+            <div class="cardUrl">lumen://music_catalog.lumen.lmn</div>
+          </div>
+        </div>
+        <p class="desc">Browse tracks and covers and play content directly from IPFS via lumen://.</p>
+        <div class="tags">
+          <span class="tag">Catalog</span>
+          <span class="tag info">IPFS</span>
+          <span class="tag">Media</span>
+        </div>
+        <div class="actions">
+          <button class="btn cardBtn" type="button" data-copy="lumen://music_catalog.lumen.lmn">Copy link</button>
+          <a class="btn primary cardBtn" href="lumen://music_catalog.lumen.lmn">Open</a>
+        </div>
+      </div>
+
+      <!-- Streaming Catalog -->
+      <div class="card" role="link" tabindex="0" data-href="lumen://streaming_catalog.lumen.lmn">
+        <div class="cardHead">
+          <div class="icon" style="color:#fbbf24;border-color:rgba(251,191,36,.35)">SC</div>
+          <div class="titleBlock">
+            <h2 class="cardTitle">Streaming Catalog</h2>
+            <div class="cardUrl">lumen://streaming_catalog.lumen.lmn</div>
+          </div>
+        </div>
+        <p class="desc">Video streaming catalog demo (CID + covers) designed for the Lumen gateway model.</p>
+        <div class="tags">
+          <span class="tag">Catalog</span>
+          <span class="tag info">Streaming</span>
+          <span class="tag info">IPFS</span>
+        </div>
+        <div class="actions">
+          <button class="btn cardBtn" type="button" data-copy="lumen://streaming_catalog.lumen.lmn">Copy link</button>
+          <a class="btn primary cardBtn" href="lumen://streaming_catalog.lumen.lmn">Open</a>
+        </div>
+      </div>
+
+      <!-- Huge HLS Video -->
+      <div class="card" role="link" tabindex="0" data-href="lumen://ipfs/bafybeihb6i6kow7ui42fpfehqtmoy5f75zkz352or2mrwk3743rlfu2gr4/master.m3u8">
+        <div class="cardHead">
+          <div class="icon" style="color:#fbbf24;border-color:rgba(251,191,36,.35)">HLS</div>
+          <div class="titleBlock">
+            <h2 class="cardTitle">HLS video</h2>
+            <div class="cardUrl">lumen://ipfs/bafybeihb6i6kow7ui42fpfehqtmoy5f75zkz352or2mrwk3743rlfu2gr4/master.m3u8</div>
+          </div>
+        </div>
+        <p class="desc">Play a large HLS stream directly from IPFS (stress-test streaming + gateway selection).</p>
+        <div class="tags">
+          <span class="tag info">HLS</span>
+          <span class="tag info">Video</span>
+          <span class="tag">IPFS</span>
+        </div>
+        <div class="actions">
+          <button class="btn cardBtn" type="button" data-copy="lumen://ipfs/bafybeihb6i6kow7ui42fpfehqtmoy5f75zkz352or2mrwk3743rlfu2gr4/master.m3u8">Copy link</button>
+          <a class="btn primary cardBtn" href="lumen://ipfs/bafybeihb6i6kow7ui42fpfehqtmoy5f75zkz352or2mrwk3743rlfu2gr4/master.m3u8">Open</a>
+        </div>
+      </div>
+
+      <!-- Book Library -->
+      <div class="card" role="link" tabindex="0" data-href="lumen://book_library.lumen.lmn">
+        <div class="cardHead">
+          <div class="icon" style="color:#a78bfa;border-color:rgba(167,139,250,.35)">BL</div>
+          <div class="titleBlock">
+            <h2 class="cardTitle">Book Library</h2>
+            <div class="cardUrl">lumen://book_library.lumen.lmn</div>
+          </div>
+        </div>
+        <p class="desc">Read a curated library of books from IPFS with a simple, fast local-first UI.</p>
+        <div class="tags">
+          <span class="tag">Reader</span>
+          <span class="tag info">IPFS</span>
+          <span class="tag">Catalog</span>
+        </div>
+        <div class="actions">
+          <button class="btn cardBtn" type="button" data-copy="lumen://book_library.lumen.lmn">Copy link</button>
+          <a class="btn primary cardBtn" href="lumen://book_library.lumen.lmn">Open</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" style="display:none">
+    <div class="toastCard">
+      <div class="toastTitle" id="toastTitle"></div>
+      <p class="toastMsg" id="toastMsg"></p>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const toastEl = document.getElementById('toast');
+      const toastTitleEl = document.getElementById('toastTitle');
+      const toastMsgEl = document.getElementById('toastMsg');
+      let toastT = 0;
+
+      function showToast(title, msg){
+        try { clearTimeout(toastT); } catch {}
+        toastTitleEl.textContent = String(title || '');
+        toastMsgEl.textContent = String(msg || '');
+        toastEl.style.display = 'flex';
+        toastT = setTimeout(() => { toastEl.style.display = 'none'; }, 2200);
+      }
+
+      function openHref(href){
+        const url = String(href || '').trim();
+        if (!url) return;
+        // Use an actual <a> click so Lumen's webview-preload can intercept lumen:// links
+        // without triggering the OS "choose an app" protocol prompt.
+        try {
+          const a = document.createElement('a');
+          a.href = url;
+          a.target = '_self';
+          a.rel = 'noreferrer';
+          a.style.position = 'fixed';
+          a.style.left = '-9999px';
+          a.style.top = '0';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          return;
+        } catch {}
+
+        window.location.href = url;
+      }
+
+      async function copyText(text){
+        const s = String(text || '').trim();
+        if (!s) return;
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(s);
+            return;
+          }
+        } catch {}
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = s;
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          ta.style.top = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+        } catch {}
+      }
+
+      document.addEventListener('click', async (e) => {
+        const t = e.target;
+        if (!(t instanceof HTMLElement)) return;
+
+        const copy = t.closest('[data-copy]');
+        if (copy) {
+          e.preventDefault();
+          e.stopPropagation();
+          const url = copy.getAttribute('data-copy') || '';
+          await copyText(url);
+          showToast('Copied', url);
+          return;
+        }
+
+        const card = t.closest('[data-href]');
+        if (card) {
+          const url = card.getAttribute('data-href') || '';
+          openHref(url);
+        }
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        const t = e.target;
+        if (!(t instanceof HTMLElement)) return;
+        const card = t.closest('[data-href]');
+        if (!card) return;
+        e.preventDefault();
+        openHref(card.getAttribute('data-href') || '');
+      });
+
+    })();
+  </script>
+</body>
+</html>
